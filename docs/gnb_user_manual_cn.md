@@ -215,7 +215,7 @@ es-argv      "--upnp"
 ```
 multi-socket on
 ```
-打开更多 UDP 监听端口，增加NAT穿透是端口探测成功的概率。
+打开更多 UDP 监听端口，增加NAT穿透端口探测成功的概率。
 
 `multi-socket` 被设为 on 后会除原有的 `listen` 的端口外，在额外打开4个随机 UDP 端口，如果想额外监听指定的端口，可以用多个 `listen` 设置项，GNB 支持用`listen` 指定监听5个地址端口或通过`listen6` 监听 5个IPV6地址和端口 以及用 `listen4` 监听5个IPV4地址端口。
 
@@ -419,6 +419,30 @@ gnb_es -s -L -b gnb/conf/1002/gnb.map
 
 要了解更多 **Discover In Lan** 的信息，可以参考 `gnb` 的 `-b, --ctl-block`，以及  `gnb_es` 的 `-s, --service` `-d, --daemon` `-L, --discover-in-lan` 选项。
 
+
+## 用 zip 压缩数据分组
+    `--zip`
+    auto    当数据压缩后比原始数据大将发送原始数据
+    force   当数据压缩后比原始数据大将发送压缩后的数据
+
+    `--zip-level`
+    0 不压缩 1~9 压缩率 1 最低压缩率， 9是最高压缩率
+
+    node.conf 支持该选项
+
+## 利用多核CPU加速数据分组处理
+
+    `--pf-worker`
+    默认是0,即使用单个线程处理ip数据分组
+    最大不超过128个线程
+
+    node.conf 支持该选项
+
+## 内存规模
+    `--memory`
+    可选项有 tiny,small,large,huge，默认是:"tiny"
+
+    node.conf 支持该选项
 
 ## 关于 net to net
 

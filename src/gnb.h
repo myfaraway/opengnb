@@ -46,6 +46,7 @@
 #include "gnb_alloc.h"
 #include "gnb_hash32.h"
 #include "gnb_payload16.h"
+#include "gnb_node_type.h"
 #include "gnb_core_frame_type_defs.h"
 #include "gnb_tun_drv.h"
 #include "gnb_pf.h"
@@ -69,6 +70,7 @@ typedef struct _gnb_core_t{
 
 	gnb_node_t *select_fwd_node;
 
+    gnb_node_ring_t index_node_ring;
 	gnb_node_ring_t fwd_node_ring;
 
 	gnb_address_ring_t index_address_ring;
@@ -83,9 +85,9 @@ typedef struct _gnb_core_t{
 
 	gnb_conf_t *conf;
 
-	uint32_t node_nums;
+	uint64_t node_nums;
 
-	gnb_hash32_map_t *uuid_node_map;   //以节点的uuid32作为key的 node 表
+	gnb_hash32_map_t *uuid_node_map;   //以节点的uuid64作为key的 node 表
 	gnb_hash32_map_t *ipv4_node_map;
 
 	gnb_hash32_map_t *subneta_node_map;
@@ -117,9 +119,6 @@ typedef struct _gnb_core_t{
 
 	gnb_tun_drv_t *drv;
 
-	gnb_pf_array_t     *pf_array;
-	gnb_pf_ctx_array_t *pf_ctx_array;
-
 	gnb_payload16_t     *inet_payload0;
 	gnb_payload16_t     *tun_payload0;
 
@@ -128,7 +127,7 @@ typedef struct _gnb_core_t{
 
 	void *platform_ctx;
 
-	gnb_worker_t   *main_worker;
+	gnb_worker_t   *primary_worker;
 
 	gnb_worker_t   *node_worker;
 
@@ -140,10 +139,7 @@ typedef struct _gnb_core_t{
 
 	gnb_worker_t   *upnp_worker;
 
-#if 0
-	//暂未使用
-	gnb_worker_array_t *worker_array;
-#endif
+	gnb_worker_ring_t *pf_worker_ring;
 
 	struct timeval now_timeval;
 	uint64_t now_time_sec;
@@ -175,7 +171,7 @@ typedef struct _gnb_core_t{
 #define GNB_LOG_ID_INDEX_SERVICE_WORKER  5
 #define GNB_LOG_ID_DETECT_WORKER         6
 
-#define GNB_VERSION_STRING    "GNB version 1.3.0.c protocol version 1.2.0"
+#define GNB_VERSION_STRING    "GNB version Dev 1.5.0.c  protocol version 1.5.0"
 #define GNB_COPYRIGHT_STRING  "Copyright (C) 2019 gnbdev<gnbdev@qq.com>"
 #define GNB_URL_STRING        "https://github.com/gnbdev/opengnb"
 

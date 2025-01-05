@@ -33,9 +33,17 @@
 #include "crypto/random/gnb_random.h"
 #include "ed25519/ed25519.h"
 
+
+#ifndef GNB_SKIP_BUILD_TIME
+#define GNB_BUILD_STRING  "Build Time ["__DATE__","__TIME__"]"
+#else
+#define GNB_BUILD_STRING  "Build Time [Hidden]"
+#endif
+
+
 static void show_useage(int argc,char *argv[]){
 
-    printf("Build[%s %s]\n", __DATE__, __TIME__);
+    printf("%s\n", GNB_BUILD_STRING);
 
     printf("usage: %s -c -p private_key_file -k public_key_file\n",argv[0]);
     printf("example:\n");
@@ -43,7 +51,7 @@ static void show_useage(int argc,char *argv[]){
 
 }
 
-static void create_keypair(uint32_t uuid32, const char *private_key_file, const char *public_key_file){
+static void create_keypair(gnb_uuid_t uuid64, const char *private_key_file, const char *public_key_file){
 
     int private_file_fd;
     int public_file_fd;
@@ -68,13 +76,14 @@ static void create_keypair(uint32_t uuid32, const char *private_key_file, const 
     public_file_fd = open(public_key_file, O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR);
 
     if ( -1 == public_file_fd ) {
+        perror("create public key file");
         exit(0);
     }
 
     wlen = write(public_file_fd,hex_string,64);
 
-    if ( -1 == wlen) {
-        perror("write public_file");
+    if ( -1 == wlen ) {
+        perror("write public key file");
     }
 
     close(public_file_fd);
@@ -84,13 +93,14 @@ static void create_keypair(uint32_t uuid32, const char *private_key_file, const 
     private_file_fd = open(private_key_file, O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR);
 
     if ( -1 == private_file_fd ) {
+        perror("create private key file");
         exit(0);
     }
 
     wlen = write(private_file_fd,hex_string,128);
 
-    if ( -1 == wlen) {
-        perror("write private_file");
+    if ( -1 == wlen ) {
+        perror("write private key file");
     }
 
     close(private_file_fd);
@@ -109,7 +119,7 @@ int main (int argc,char *argv[]){
 
     int opt;
 
-    uint32_t uuid32 = 0;
+    gnb_uuid_t uuid64 = 0;
 
     char *public_key_file  = NULL;
     char *private_key_file = NULL;
@@ -122,7 +132,7 @@ int main (int argc,char *argv[]){
 
         opt = getopt_long (argc, argv, "ck:p:h",long_options, &option_index);
 
-        if (opt == -1) {
+        if ( -1 == opt ) {
             break;
         }
 
@@ -154,12 +164,8 @@ int main (int argc,char *argv[]){
         exit(0);
     }
 
-    create_keypair(uuid32, private_key_file, public_key_file);
+    create_keypair(uuid64, private_key_file, public_key_file);
 
     return 0;
 
 }
-
-/*
-./gnb_crypto -c -p 1010.private -k 1010.public
-*/

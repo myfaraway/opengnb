@@ -41,26 +41,23 @@
 #include "gnb_keys.h"
 #include "gnb_time.h"
 #include "gnb_udp.h"
-
 #include "ed25519/ed25519.h"
 #include "ed25519/sha512.h"
-
 #include "gnb_binary.h"
 
 
-
-gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32){
+gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, gnb_uuid_t uuid64){
 
     gnb_node_t *node = &gnb_core->ctl_block->node_zone->node[gnb_core->node_nums];
 
     memset(node,0,sizeof(gnb_node_t));
 
-    node->uuid32 = uuid32;
+    node->uuid64 = uuid64;
 
     node->type =  GNB_NODE_TYPE_STD;
 
-    uint32_t node_id_network_order;
-    uint32_t local_node_id_network_order;
+    gnb_uuid_t node_id_network_order;
+    gnb_uuid_t local_node_id_network_order;
 
     gnb_address_list_t *static_address_list;
     gnb_address_list_t *dynamic_address_list;
@@ -84,9 +81,9 @@ gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32){
 
     if ( 0 == gnb_core->conf->lite_mode ) {
 
-        if ( gnb_core->conf->local_uuid != uuid32 ) {
+        if ( gnb_core->conf->local_uuid != uuid64 ) {
 
-            gnb_load_public_key(gnb_core, uuid32, node->public_key);
+            gnb_load_public_key(gnb_core, uuid64, node->public_key);
             ed25519_key_exchange(node->shared_secret, node->public_key, gnb_core->ed25519_private_key);
 
         } else {
@@ -100,15 +97,15 @@ gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32){
     } else {
 
         //lite mode
-        if ( gnb_core->conf->local_uuid == uuid32 ) {
+        if ( gnb_core->conf->local_uuid == uuid64 ) {
             memset(gnb_core->ed25519_private_key, 0, 64);
             memset(gnb_core->ed25519_public_key,  0,32);
         }
 
         memset(node->public_key, 0, 32);
 
-        node_id_network_order       = htonl(uuid32);
-        local_node_id_network_order = htonl(gnb_core->conf->local_uuid);
+        node_id_network_order       = gnb_htonll(uuid64);
+        local_node_id_network_order = gnb_htonll(gnb_core->conf->local_uuid);
 
         memcpy(node->public_key, &node_id_network_order, 4);
 
@@ -140,7 +137,7 @@ void gnb_init_node_key512(gnb_core_t *gnb_core){
 
     int i;
 
-    uint32_t uuid32;
+    gnb_uuid_t uuid64;
 
     gnb_node_t *node;
 
@@ -150,7 +147,7 @@ void gnb_init_node_key512(gnb_core_t *gnb_core){
 
         node = &gnb_core->ctl_block->node_zone->node[i];
 
-        if (NULL==node) {
+        if ( NULL==node ) {
             continue;
         }
 
@@ -164,11 +161,11 @@ void gnb_init_node_key512(gnb_core_t *gnb_core){
 }
 
 
-void gnb_add_forward_node_ring(gnb_core_t *gnb_core, uint32_t uuid32){
+void gnb_add_forward_node_ring(gnb_core_t *gnb_core, gnb_uuid_t uuid64){
 
     gnb_node_t *node;
 
-    node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
+    node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, uuid64);
 
     if ( NULL == node ) {
         return;
@@ -190,6 +187,32 @@ void gnb_add_forward_node_ring(gnb_core_t *gnb_core, uint32_t uuid32){
 }
 
 
+void gnb_add_index_node_ring(gnb_core_t *gnb_core, gnb_uuid_t uuid64){
+
+    gnb_node_t *node;
+
+    node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, uuid64);
+
+    if ( NULL == node ) {
+        return;
+    }
+
+    if ( gnb_core->index_node_ring.num >= GNB_MAX_NODE_RING ) {
+        gnb_core->index_node_ring.num = GNB_MAX_NODE_RING;
+        return;
+    }
+
+    node->type |= GNB_NODE_TYPE_IDX;
+
+    gnb_core->index_node_ring.nodes[gnb_core->index_node_ring.num] = node;
+
+    gnb_core->index_node_ring.cur_index = gnb_core->index_node_ring.num;
+
+    gnb_core->index_node_ring.num++;
+
+}
+
+
 gnb_node_t* gnb_select_forward_node(gnb_core_t *gnb_core){
 
     int i;
@@ -201,6 +224,10 @@ gnb_node_t* gnb_select_forward_node(gnb_core_t *gnb_core){
     }
 
     if ( 1 == gnb_core->fwd_node_ring.num ) {
+        return gnb_core->fwd_node_ring.nodes[0];
+    }
+
+    if ( gnb_core->conf->pf_worker_num > 0 ) {
         return gnb_core->fwd_node_ring.nodes[0];
     }
 
@@ -471,6 +498,64 @@ SIMPLE_LOAD_BALANCE:
 }
 
 
+gnb_node_t* gnb_select_index_nodes(gnb_core_t *gnb_core){
+
+    int i;
+
+    gnb_node_t *gnb_index_node;
+
+    if ( 0 == gnb_core->index_node_ring.num ) {
+        return NULL;
+    }
+
+    if ( 1 == gnb_core->index_node_ring.num ) {
+        return gnb_core->index_node_ring.nodes[0];
+    }
+
+    if ( GNB_MULTI_ADDRESS_TYPE_SIMPLE_FAULT_TOLERANT == gnb_core->conf->multi_index_type ) {
+        goto SIMPLE_FAULT_TOLERANT;
+    }
+
+    if ( GNB_MULTI_ADDRESS_TYPE_SIMPLE_LOAD_BALANCE == gnb_core->conf->multi_index_type ) {
+        goto SIMPLE_LOAD_BALANCE;
+    }
+
+SIMPLE_FAULT_TOLERANT:
+
+    for ( i=0; i<gnb_core->index_node_ring.num; i++ ) {
+
+        gnb_index_node = gnb_core->index_node_ring.nodes[i];
+
+        if ( GNB_NODE_STATUS_IPV6_PONG & gnb_index_node->udp_addr_status || GNB_NODE_STATUS_IPV4_PONG  & gnb_index_node->udp_addr_status ) {
+            return gnb_core->index_node_ring.nodes[i];
+        }
+
+    }
+
+    return gnb_core->index_node_ring.nodes[0];
+
+SIMPLE_LOAD_BALANCE:
+
+    for ( i=0; i<gnb_core->index_node_ring.num; i++ ) {
+
+        gnb_index_node = gnb_core->index_node_ring.nodes[gnb_core->index_node_ring.cur_index];
+
+        gnb_core->index_node_ring.cur_index++;
+
+        if ( gnb_core->index_node_ring.cur_index >= gnb_core->index_node_ring.num ) {
+            gnb_core->index_node_ring.cur_index = 0;
+        }
+
+        if ( GNB_NODE_STATUS_IPV6_PONG & gnb_index_node->udp_addr_status || GNB_NODE_STATUS_IPV4_PONG  & gnb_index_node->udp_addr_status ) {
+            return gnb_core->index_node_ring.nodes[i];
+        }
+    }
+
+    return gnb_core->index_node_ring.nodes[0];
+
+}
+
+
 gnb_address_t* gnb_select_available_address4(gnb_core_t *gnb_core, gnb_node_t *node){
 
     gnb_address_t *address = NULL;
@@ -483,11 +568,11 @@ gnb_address_t* gnb_select_available_address4(gnb_core_t *gnb_core, gnb_node_t *n
 
     for ( i=0; i<address_list->num; i++ ) {
 
-        if (AF_INET != address_list->array[i].type) {
+        if ( AF_INET != address_list->array[i].type ) {
             continue;
         }
 
-        if ( 0 == address_list->array[i].port) {
+        if ( 0 == address_list->array[i].port ) {
             continue;
         }
 
@@ -512,11 +597,11 @@ gnb_address_t* gnb_select_available_address4(gnb_core_t *gnb_core, gnb_node_t *n
 
     for ( i=0; i<address_list->num; i++ ) {
 
-        if (AF_INET != address_list->array[i].type) {
+        if ( AF_INET != address_list->array[i].type ) {
             continue;
         }
 
-        if ( 0 == address_list->array[i].port) {
+        if ( 0 == address_list->array[i].port ) {
             continue;
         }
 
@@ -541,11 +626,11 @@ gnb_address_t* gnb_select_available_address4(gnb_core_t *gnb_core, gnb_node_t *n
 
     for ( i=0; i<address_list->num; i++ ) {
 
-        if (AF_INET != address_list->array[i].type) {
+        if ( AF_INET != address_list->array[i].type ) {
             continue;
         }
 
-        if ( 0 == address_list->array[i].port) {
+        if ( 0 == address_list->array[i].port ) {
             continue;
         }
 
@@ -570,11 +655,11 @@ gnb_address_t* gnb_select_available_address4(gnb_core_t *gnb_core, gnb_node_t *n
 
     for ( i=0; i<address_list->num; i++ ) {
 
-        if (AF_INET != address_list->array[i].type) {
+        if ( AF_INET != address_list->array[i].type ) {
             continue;
         }
 
-        if ( 0 == address_list->array[i].port) {
+        if ( 0 == address_list->array[i].port ) {
             continue;
         }
 
@@ -607,7 +692,43 @@ int gnb_send_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *pa
 
     }
 
-    if (GNB_ADDR_TYPE_IPV4 == gnb_core->conf->udp_socket_type) {
+    if ( GNB_ADDR_TYPE_IPV4 == gnb_core->conf->udp_socket_type ) {
+        goto finish;
+    }
+
+send_by_ipv6:
+
+    if ( (GNB_ADDR_TYPE_IPV6 & addr_type_bits) && (gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV6) > 0 && memcmp(&node->udp_sockaddr6.sin6_addr,&in6addr_any,sizeof(struct in6_addr)) ) {
+
+        for (i=0; i<gnb_core->conf->udp6_socket_num; i++) {
+            sendto(gnb_core->udp_ipv6_sockets[i],(void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&node->udp_sockaddr6, sizeof(struct sockaddr_in6) );
+        }
+
+    }
+
+finish:
+
+    return 0;
+
+}
+
+int gnb_send_to_node_secure(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *payload, int secure, unsigned char addr_type_bits){
+
+    if ( GNB_ADDR_TYPE_IPV6 == gnb_core->conf->udp_socket_type ) {
+        goto send_by_ipv6;
+    }
+
+    int i;
+
+    if ( (GNB_ADDR_TYPE_IPV4 & addr_type_bits) && (gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV4) && INADDR_ANY != node->udp_sockaddr4.sin_addr.s_addr ) {
+
+        for (i=0; i<gnb_core->conf->udp4_socket_num; i++) {
+            sendto(gnb_core->udp_ipv4_sockets[ i ], (void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&node->udp_sockaddr4, sizeof(struct sockaddr_in));
+        }
+
+    }
+
+    if ( GNB_ADDR_TYPE_IPV4 == gnb_core->conf->udp_socket_type ) {
         goto finish;
     }
 
@@ -637,8 +758,6 @@ int gnb_forward_payload_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payl
     } else if ( GNB_ADDR_TYPE_IPV6 == gnb_core->conf->udp_socket_type ) {
         goto send_by_ipv6;
     }
-
-    unsigned char send;
 
     if ( (node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) && (node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) ) {
 
@@ -677,4 +796,3 @@ finish:
     return 0;
 
 }
-

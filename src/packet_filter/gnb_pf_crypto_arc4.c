@@ -31,14 +31,13 @@ typedef struct _gnb_pf_private_ctx_t {
 
 gnb_pf_t gnb_pf_crypto_arc4;
 
-
-static void init_arc4_keys(gnb_core_t *gnb_core){
+static void init_arc4_keys(gnb_core_t *gnb_core,gnb_pf_t *pf){
 
     int i;
 
     gnb_node_t *node;
 
-    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)GNB_PF_GET_CTX(gnb_core, gnb_pf_crypto_arc4);
+    gnb_pf_private_ctx_t *ctx = pf->private_ctx;
 
     ctx->save_time_seed_update_factor = gnb_core->time_seed_update_factor;
 
@@ -56,7 +55,7 @@ static void init_arc4_keys(gnb_core_t *gnb_core){
 
         gnb_build_crypto_key(gnb_core, node);
 
-        sbox = GNB_HASH32_UINT32_GET_PTR(ctx->arc4_ctx_map, node->uuid32);
+        sbox = GNB_HASH32_UINT64_GET_PTR(ctx->arc4_ctx_map, node->uuid64);
 
         if ( NULL == sbox ) {
             continue;
@@ -69,13 +68,13 @@ static void init_arc4_keys(gnb_core_t *gnb_core){
 }
 
 
-static void pf_init_cb(gnb_core_t *gnb_core){
+static void pf_init_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
     gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t*)gnb_heap_alloc(gnb_core->heap,sizeof(gnb_pf_private_ctx_t));
 
-    GNB_PF_SET_CTX(gnb_core,gnb_pf_crypto_arc4,ctx);
-
     ctx->arc4_ctx_map = gnb_hash32_create(gnb_core->heap,gnb_core->node_nums,gnb_core->node_nums);
+
+    pf->private_ctx = ctx;
 
     int num = gnb_core->ctl_block->node_zone->node_num;
 
@@ -99,27 +98,26 @@ static void pf_init_cb(gnb_core_t *gnb_core){
 
         arc4_init(sbox, node->crypto_key, 64);
 
-        GNB_HASH32_UINT32_SET(ctx->arc4_ctx_map, node->uuid32, sbox);
+        GNB_HASH32_UINT64_SET(ctx->arc4_ctx_map, node->uuid64, sbox);
 
     }
 
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_PF, "%s init\n", pf->name);
+
 }
 
 
-static void pf_conf_cb(gnb_core_t *gnb_core) {
-    init_arc4_keys(gnb_core);
+static void pf_conf_cb(gnb_core_t *gnb_core, gnb_pf_t *pf) {
+    init_arc4_keys(gnb_core,pf);
 }
 
 
-/*
- 用dst node 的key 加密 ip frmae
-*/
-static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
-    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)GNB_PF_GET_CTX(gnb_core, gnb_pf_crypto_arc4);
+    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)pf->private_ctx;
 
     if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ) {
-        init_arc4_keys(gnb_core);
+        init_arc4_keys(gnb_core,pf);
     }
 
     struct arc4_sbox sbox;
@@ -128,10 +126,10 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
         return GNB_PF_ERROR;
     }
 
-    struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT32_GET_PTR(ctx->arc4_ctx_map, pf_ctx->dst_uuid32);
+    struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT64_GET_PTR(ctx->arc4_ctx_map, pf_ctx->dst_uuid64);
 
     if ( NULL==sbox_init ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 tun_frame node[%u] miss key\n", pf_ctx->dst_node->uuid32);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 tun_frame node[%llu] miss key\n", pf_ctx->dst_node->uuid64);
         return GNB_PF_ERROR;
     }
 
@@ -144,35 +142,32 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 }
 
 
-/*
-  用 relay node 的key 加密 payload
-*/
-static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
     if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ) {
         return pf_ctx->pf_status;
     }
 
-    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)GNB_PF_GET_CTX(gnb_core, gnb_pf_crypto_arc4);
+    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)pf->private_ctx;
 
     if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ) {
-        init_arc4_keys(gnb_core);
+        init_arc4_keys(gnb_core,pf);
     }
 
     struct arc4_sbox sbox;
 
     if ( GNB_PF_FWD_INET==pf_ctx->pf_fwd ) {
 
-        struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT32_GET_PTR(ctx->arc4_ctx_map, pf_ctx->fwd_node->uuid32 );
+        struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT64_GET_PTR(ctx->arc4_ctx_map, pf_ctx->fwd_node->uuid64 );
 
         if (NULL==sbox_init) {
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 tun_frame node[%u] miss key\n", pf_ctx->dst_node->uuid32);
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 tun_frame node[%llu] miss key\n", pf_ctx->dst_node->uuid64);
             return GNB_PF_ERROR;
         }
 
         sbox = *sbox_init;
 
-        arc4_crypt(&sbox, pf_ctx->fwd_payload->data, gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t));
+        arc4_crypt(&sbox, pf_ctx->fwd_payload->data, gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t));
 
     }
 
@@ -181,15 +176,12 @@ static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 }
 
 
-/*
- 用 src_fwd_node 的密钥为payload的子类型是 GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY 的 payload 解密，其他类型不处理
-*/
-static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
-    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)GNB_PF_GET_CTX(gnb_core, gnb_pf_crypto_arc4);
+    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)pf->private_ctx;
 
     struct arc4_sbox sbox;
-    uint32_t *src_fwd_nodeid_ptr;
+    gnb_uuid_t *src_fwd_nodeid_ptr;
     uint16_t payload_size;
 
     if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ) {
@@ -197,25 +189,25 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     }
 
     if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ) {
-        init_arc4_keys(gnb_core);
+        init_arc4_keys(gnb_core,pf);
     }
 
     payload_size = gnb_payload16_size(pf_ctx->fwd_payload);
 
-    src_fwd_nodeid_ptr = (uint32_t *)( (void *)pf_ctx->fwd_payload + payload_size - sizeof(uint32_t) );
+    src_fwd_nodeid_ptr = (gnb_uuid_t *)( (void *)pf_ctx->fwd_payload + payload_size - sizeof(gnb_uuid_t) );
 
-    pf_ctx->src_fwd_uuid32 = ntohl(*src_fwd_nodeid_ptr);
+    pf_ctx->src_fwd_uuid64 = gnb_ntohll(*src_fwd_nodeid_ptr);
 
-    struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT32_GET_PTR(ctx->arc4_ctx_map, pf_ctx->src_fwd_uuid32);
+    struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT64_GET_PTR(ctx->arc4_ctx_map, pf_ctx->src_fwd_uuid64);
 
-    if (NULL==sbox_init) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 pf_inet_frame_cb node[%u] miss key\n", pf_ctx->src_fwd_uuid32);
+    if ( NULL==sbox_init ) {
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 pf_inet_frame_cb node[%llu] miss key\n", pf_ctx->src_fwd_uuid64);
         return GNB_PF_ERROR;
     }
 
     sbox = *sbox_init;
 
-    arc4_crypt(&sbox, pf_ctx->fwd_payload->data, gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t));
+    arc4_crypt(&sbox, pf_ctx->fwd_payload->data, gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t));
 
 finish:
 
@@ -224,20 +216,20 @@ finish:
 }
 
 
-static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
-    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)GNB_PF_GET_CTX(gnb_core, gnb_pf_crypto_arc4);
+    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)pf->private_ctx;
 
     if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ) {
-        init_arc4_keys(gnb_core);
+        init_arc4_keys(gnb_core,pf);
     }
 
     if ( GNB_PF_FWD_TUN==pf_ctx->pf_fwd ) {
 
-        struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT32_GET_PTR(ctx->arc4_ctx_map, pf_ctx->src_uuid32);
+        struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT64_GET_PTR(ctx->arc4_ctx_map, pf_ctx->src_uuid64);
 
-        if (NULL==sbox_init) {
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 inet_route node[%u] miss key\n", pf_ctx->src_uuid32);
+        if ( NULL==sbox_init ) {
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 inet_route node[%llu] miss key\n", pf_ctx->src_uuid64);
             return GNB_PF_ERROR;
         }
 
@@ -252,9 +244,9 @@ static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 }
 
 
-static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
-    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)GNB_PF_GET_CTX(gnb_core, gnb_pf_crypto_arc4);
+    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)pf->private_ctx;
 
     struct arc4_sbox sbox;
 
@@ -263,7 +255,7 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     }
 
     if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ) {
-        init_arc4_keys(gnb_core);
+        init_arc4_keys(gnb_core,pf);
     }
 
     if ( GNB_PF_FWD_INET==pf_ctx->pf_fwd ) {
@@ -273,16 +265,16 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
             goto finish;
         }
 
-        struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT32_GET_PTR(ctx->arc4_ctx_map, pf_ctx->fwd_node->uuid32);
+        struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT64_GET_PTR(ctx->arc4_ctx_map, pf_ctx->fwd_node->uuid64);
 
         if ( NULL==sbox_init ) {
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 pf_inet_frame_cb node[%u] miss key\n", pf_ctx->fwd_node->uuid32);
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 pf_inet_frame_cb node[%llu] miss key\n", pf_ctx->fwd_node->uuid64);
             return GNB_PF_ERROR;
         }
 
         sbox = *sbox_init;
 
-        arc4_crypt(&sbox, pf_ctx->fwd_payload->data, gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t));
+        arc4_crypt(&sbox, pf_ctx->fwd_payload->data, gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t));
 
     }
 
@@ -293,16 +285,15 @@ finish:
 }
 
 
-static void pf_release_cb(gnb_core_t *gnb_core){
+static void pf_release_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
-    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)GNB_PF_GET_CTX(gnb_core, gnb_pf_crypto_arc4);
 
 }
 
 
 gnb_pf_t gnb_pf_crypto_arc4 = {
-    0,
     "gnb_pf_crypto_arc4",
+    NULL,
     pf_init_cb,
     pf_conf_cb,
     NULL,

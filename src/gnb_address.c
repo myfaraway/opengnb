@@ -25,15 +25,22 @@
 #ifdef __UNIX_LIKE_OS__
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#define __USE_MISC 1
+#include <netinet/in.h>
+
 #endif
 
 #ifdef _WIN32
 
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
-
 #include <winsock2.h>
 #include <ws2tcpip.h>
+
+//#define __USE_MISC 1
+//#include <in.h>
+
+#define in_addr_t uint32_t
 
 #define _POSIX
 #define __USE_MINGW_ALARM
@@ -115,7 +122,6 @@ gnb_address_list_t* gnb_create_address_list(size_t size){
     return address_list;
 
 }
-
 void gnb_address_list_release(gnb_address_list_t *address_list){
     free(address_list);
 }
@@ -128,6 +134,10 @@ int gnb_address_list_find(gnb_address_list_t *address_list, gnb_address_t *addre
     for ( i=0; i < address_list->num; i++ ) {
 
         if ( address->type != address_list->array[i].type ) {
+            continue;
+        }
+
+        if ( address->port != address_list->array[i].port ) {
             continue;
         }
 
@@ -313,7 +323,7 @@ char * gnb_get_socket6string(struct sockaddr_in6 *in6, char *dest, uint8_t addr_
 
     char *p;
 
-    if (addr_secure) {
+    if ( addr_secure ) {
 
         p = dest+1;
 
@@ -367,7 +377,7 @@ char * gnb_get_ip_port_string(gnb_address_t *address, char *dest, uint8_t addr_s
         snprintf(dest, GNB_IP6_PORT_STRING_SIZE,"NONE_ADDRESS");
     }
 
-    if (addr_secure) {
+    if ( addr_secure ) {
 
         while ( '\0' != *p ) {
 
@@ -421,9 +431,9 @@ void gnb_set_sockaddress4(gnb_sockaddress_t *sockaddress, int protocol, const ch
 
     sockaddress->addr_type = AF_INET;
 
-    if (GNB_PROTOCOL_TCP == protocol) {
+    if ( GNB_PROTOCOL_TCP == protocol ) {
         sockaddress->protocol = SOCK_STREAM;
-    } else if (GNB_PROTOCOL_UDP == protocol) {
+    } else if ( GNB_PROTOCOL_UDP == protocol ) {
         sockaddress->protocol = SOCK_DGRAM;
     } else {
         sockaddress->protocol = SOCK_DGRAM;
@@ -450,9 +460,9 @@ void gnb_set_sockaddress6(gnb_sockaddress_t *sockaddress, int protocol, const ch
 
     sockaddress->addr_type = AF_INET6;
 
-    if (GNB_PROTOCOL_TCP == protocol) {
+    if ( GNB_PROTOCOL_TCP == protocol ) {
         sockaddress->protocol = SOCK_STREAM;
-    } else if (GNB_PROTOCOL_UDP == protocol) {
+    } else if ( GNB_PROTOCOL_UDP == protocol ) {
         sockaddress->protocol = SOCK_DGRAM;
     } else {
         sockaddress->protocol = SOCK_DGRAM;
@@ -545,7 +555,23 @@ char* gnb_hide_adrress_string(char*adrress_string){
 
 }
 
+
 void gnb_address_list3_fifo(gnb_address_list_t *address_list, gnb_address_t *address){
+
+    int idx;
+
+    if ( 0 == address_list->num ) {
+        goto update_fifo;
+    }
+
+    idx = gnb_address_list_find(address_list, address);
+
+    if ( idx >= 0 ) {
+        address_list->array[idx].ts_sec = address->ts_sec;
+        return;
+    }
+
+update_fifo:
 
     switch (address_list->num) {
 
@@ -583,5 +609,47 @@ void gnb_address_list3_fifo(gnb_address_list_t *address_list, gnb_address_t *add
         break;
 
     }
+
+}
+
+
+int gnb_determine_subnet6_prefixlen96(struct in6_addr addr6_a, struct in6_addr addr6_b) {
+
+    int ret;
+
+    addr6_a.s6_addr[12] = 0;
+    addr6_a.s6_addr[13] = 0;
+    addr6_a.s6_addr[14] = 0;
+    addr6_a.s6_addr[15] = 0;
+
+    addr6_b.s6_addr[12] = 0;
+    addr6_b.s6_addr[13] = 0;
+    addr6_b.s6_addr[14] = 0;
+    addr6_b.s6_addr[15] = 0;
+
+    /* rfc3542
+    This macro returns non-zero if the addresses are equal; otherwise it
+    returns zero.    
+    */
+    ret = IN6_ARE_ADDR_EQUAL( &addr6_a, &addr6_b );
+
+    return ret;
+
+}
+
+
+int gnb_determine_subnet4(struct in_addr addr4_a, struct in_addr addr4_b, struct in_addr netmask) {
+    
+    in_addr_t ipv4_network_a;
+    in_addr_t ipv4_network_b;
+
+    ipv4_network_a = addr4_a.s_addr & netmask.s_addr;
+    ipv4_network_b = addr4_b.s_addr & netmask.s_addr;
+
+    if ( ipv4_network_a == ipv4_network_b ) {
+        return 1;
+    }
+
+    return 0;
 
 }

@@ -40,13 +40,7 @@ void gnb_setup_listen_addr_port(char *listen_address6_string, uint16_t *port_ptr
 void gnb_setup_es_argv(char *es_argv_string);
 
 
-#define DETECT_PORT_START  1024
-#define DETECT_PORT_END   65535
-#define DETECT_PORT_RANGE    25
-
-
 #define GNB_OPT_INIT                   0x91
-
 
 #define SET_ADDR_SECURE                (GNB_OPT_INIT + 1)
 
@@ -66,52 +60,57 @@ void gnb_setup_es_argv(char *es_argv_string);
 #define SET_NODE_WORKER_QUEUE          (GNB_OPT_INIT + 13)
 #define SET_INDEX_WORKER_QUEUE         (GNB_OPT_INIT + 14)
 #define SET_INDEX_SERVICE_WORKER_QUEUE (GNB_OPT_INIT + 15)
+#define SET_PACKET_FILTER_WORKER_QUEUE (GNB_OPT_INIT + 16)
 
-#define SET_PORT_DETECT_START          (GNB_OPT_INIT + 16)
-#define SET_PORT_DETECT_END            (GNB_OPT_INIT + 17)
-#define SET_PORT_DETECT_RANGE          (GNB_OPT_INIT + 18)
+#define SET_PORT_DETECT                (GNB_OPT_INIT + 17)
 
-#define SET_PID_FILE                   (GNB_OPT_INIT + 19)
-#define SET_NODE_CACHE_FILE            (GNB_OPT_INIT + 20)
+#define SET_DETECT_INTERVAL            (GNB_OPT_INIT + 18)
 
-#define SET_LOG_FILE_PATH              (GNB_OPT_INIT + 21)
-#define SET_LOG_UDP6                   (GNB_OPT_INIT + 22)
-#define SET_LOG_UDP4                   (GNB_OPT_INIT + 23)
-#define SET_LOG_UDP_TYPE               (GNB_OPT_INIT + 24)
+#define SET_PID_FILE                   (GNB_OPT_INIT + 20)
+#define SET_NODE_CACHE_FILE            (GNB_OPT_INIT + 21)
 
-#define SET_CONSOLE_LOG_LEVEL          (GNB_OPT_INIT + 25)
-#define SET_FILE_LOG_LEVEL             (GNB_OPT_INIT + 26)
-#define SET_UDP_LOG_LEVEL              (GNB_OPT_INIT + 27)
+#define SET_LOG_FILE_PATH              (GNB_OPT_INIT + 22)
+#define SET_LOG_UDP6                   (GNB_OPT_INIT + 23)
+#define SET_LOG_UDP4                   (GNB_OPT_INIT + 24)
+#define SET_LOG_UDP_TYPE               (GNB_OPT_INIT + 25)
 
+#define SET_CONSOLE_LOG_LEVEL          (GNB_OPT_INIT + 26)
+#define SET_FILE_LOG_LEVEL             (GNB_OPT_INIT + 27)
+#define SET_UDP_LOG_LEVEL              (GNB_OPT_INIT + 28)
 
-#define SET_CORE_LOG_LEVEL             (GNB_OPT_INIT + 28)
-#define SET_PF_LOG_LEVEL               (GNB_OPT_INIT + 29)
-#define SET_MAIN_LOG_LEVEL             (GNB_OPT_INIT + 30)
+#define SET_CORE_LOG_LEVEL             (GNB_OPT_INIT + 29)
+#define SET_PF_LOG_LEVEL               (GNB_OPT_INIT + 30)
+#define SET_MAIN_LOG_LEVEL             (GNB_OPT_INIT + 31)
 
-#define SET_NODE_LOG_LEVEL             (GNB_OPT_INIT + 31)
-#define SET_INDEX_LOG_LEVEL            (GNB_OPT_INIT + 32)
-#define SET_INDEX_SERVICE_LOG_LEVEL    (GNB_OPT_INIT + 33)
-#define SET_DETECT_LOG_LEVEL           (GNB_OPT_INIT + 34)
+#define SET_NODE_LOG_LEVEL             (GNB_OPT_INIT + 32)
+#define SET_INDEX_LOG_LEVEL            (GNB_OPT_INIT + 33)
+#define SET_INDEX_SERVICE_LOG_LEVEL    (GNB_OPT_INIT + 34)
+#define SET_DETECT_LOG_LEVEL           (GNB_OPT_INIT + 35)
 
-#define SET_IF_DUMP                    (GNB_OPT_INIT + 35)
-#define SET_PF_TRACE                   (GNB_OPT_INIT + 36)
-#define SET_PF_ROUTE                   (GNB_OPT_INIT + 37)
+#define SET_IF_DUMP                    (GNB_OPT_INIT + 36)
+#define SET_PF_TRACE                   (GNB_OPT_INIT + 37)
+#define SET_PF_ROUTE                   (GNB_OPT_INIT + 38)
 
-#define SET_TUN                        (GNB_OPT_INIT + 39)
-#define SET_INDEX_WORKER               (GNB_OPT_INIT + 40)
-#define SET_INDEX_SERVICE_WORKER       (GNB_OPT_INIT + 41)
-#define SET_DETECT_WORKER              (GNB_OPT_INIT + 42)
+#define SET_TUN                        (GNB_OPT_INIT + 40)
+#define SET_INDEX_WORKER               (GNB_OPT_INIT + 41)
+#define SET_INDEX_SERVICE_WORKER       (GNB_OPT_INIT + 42)
+#define SET_DETECT_WORKER              (GNB_OPT_INIT + 43)
 
-#define SET_UR0                        (GNB_OPT_INIT + 43)
-#define SET_UR1                        (GNB_OPT_INIT + 44)
+#define SET_UR0                        (GNB_OPT_INIT + 44)
+#define SET_UR1                        (GNB_OPT_INIT + 45)
 
-#define SET_SYSTEMD_DAEMON             (GNB_OPT_INIT + 45)
+#define SET_SYSTEMD_DAEMON             (GNB_OPT_INIT + 46)
 
-#define SET_IF_DRV                     (GNB_OPT_INIT + 46)
+#define SET_IF_DRV                     (GNB_OPT_INIT + 47)
 
-#define SET_FULL_DETECT_INTERVAL_USEC  (GNB_OPT_INIT + 47)
+#define SET_PF_WORKER_NUM              (GNB_OPT_INIT + 48)
 
+#define SET_ZIP                        (GNB_OPT_INIT + 49)
+#define SET_ZIP_LEVEL                  (GNB_OPT_INIT + 50)
 
+#define SET_MEMORY_SCALE               (GNB_OPT_INIT + 51)
+
+#define SET_SAFE_INDEX                 (GNB_OPT_INIT + 52)
 
 gnb_arg_list_t *gnb_es_arg_list;
 
@@ -122,17 +121,13 @@ int is_trace     = 0;
 gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     gnb_conf_t *conf;
-
     uint16_t port_host;
-
     char *ctl_block_file = NULL;
-
     int ret;
+    int num;
 
     conf = malloc( sizeof(gnb_conf_t) );
-
     memset(conf,0,sizeof(gnb_conf_t));
-
     memset(&gnb_conf_ext_lite,0,sizeof(gnb_conf_ext_lite_t));
 
     gnb_es_arg_list = gnb_arg_list_init(32);
@@ -151,11 +146,10 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     conf->activate_index_service_worker = 1;
     conf->activate_detect_worker        = 1;
 
+    conf->pf_worker_num = 0;
     conf->direct_forwarding  = 1;
-
     conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
-
-    conf->universal_relay0   = 1;
+    conf->universal_relay0   = 0;
 
     /*
     IPv4最小MTU=576bytes
@@ -165,14 +159,18 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     */
     conf->mtu            = 1280;
 
-    conf->crypto_type    = GNB_PF_TYPE_CRYPTO_XOR;
+    conf->pf_bits |= GNB_PF_BITS_CRYPTO_XOR;
 
     conf->crypto_key_update_interval = GNB_CRYPTO_KEY_UPDATE_INTERVAL_NONE;
 
-    conf->crypto_passcode[0] = 0x07;
-    conf->crypto_passcode[1] = 0x81;
-    conf->crypto_passcode[2] = 0x07;
-    conf->crypto_passcode[3] = 0x9d;
+    conf->crypto_passcode[0] = 0x00;
+    conf->crypto_passcode[1] = 0x00;
+    conf->crypto_passcode[2] = 0x00;
+    conf->crypto_passcode[3] = 0x91;
+
+    conf->zip_level = 0;
+
+    conf->memory = GNB_MEMORY_SCALE_TINY;
 
     conf->multi_index_type   = GNB_MULTI_ADDRESS_TYPE_SIMPLE_LOAD_BALANCE;
     conf->multi_forward_type = GNB_MULTI_ADDRESS_TYPE_SIMPLE_LOAD_BALANCE;
@@ -195,19 +193,22 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     conf->udp_socket_type = GNB_ADDR_TYPE_IPV4 | GNB_ADDR_TYPE_IPV6;
 
-    conf->node_woker_queue_length  = 32;
-    conf->index_woker_queue_length = 256;
-    conf->index_service_woker_queue_length = 256;
+    conf->pf_woker_in_queue_length  = 0xFFF;
+    conf->pf_woker_out_queue_length = 0xFFF;
+    conf->node_woker_queue_length   = 0xFF;
+    conf->index_woker_queue_length  = 0xFF;
+    conf->index_service_woker_queue_length = 0xFF;
 
     conf->udp6_socket_num = 1;
     conf->udp4_socket_num = 1;
 
+    conf->port_detect_range = DETECT_PORT_RANGE;
     conf->port_detect_start = DETECT_PORT_START;
     conf->port_detect_end   = DETECT_PORT_END;
-    conf->port_detect_range = DETECT_PORT_RANGE;
 
-    conf->full_detect_interval_usec = 1600;
-
+    conf->address_detect_interval_usec = GNB_ADDRESS_DETECT_INTERVAL_USEC;
+    conf->full_detect_interval_sec     = GNB_FULL_DETECT_INTERVAL_SEC;
+    conf->safe_index = 0;
     conf->daemon = 0;
     conf->systemd_daemon = 0;
 
@@ -269,17 +270,24 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "nodeid",   required_argument, 0, 'n' },
 
       { "public-index-service",  no_argument, 0, 'P' },
+      { "safe-index",            no_argument, 0, SET_SAFE_INDEX },
 
       { "index-address",  required_argument, 0, 'I' },
       { "node-address",   required_argument, 0, 'a' },
       { "node-route",     required_argument, 0, 'r' },
 
       { "ifname",   required_argument, 0, 'i' },
-      { "if-drv",   required_argument, 0, SET_IF_DRV},
+      { "if-drv",   required_argument, 0, SET_IF_DRV },
       { "mtu",      required_argument, 0, SET_MTU },
       { "crypto",   required_argument, 0, SET_CRYPTO_TPYE },
       { "passcode", required_argument,  0, 'p' },
       { "crypto-key-update-interval", required_argument,  0, SET_CRYPTO_KEY_UPDATE_INTERVAL },
+
+      { "zip",       required_argument,  0, SET_ZIP },
+      { "zip-level", required_argument,  0, SET_ZIP_LEVEL },
+
+      { "memory",    required_argument,  0, SET_MEMORY_SCALE },
+
       { "multi-index-type",    required_argument,  0, SET_MULTI_INDEX_TYPE },
       { "multi-forward-type",  required_argument,  0, SET_MULTI_FORWARD_TYPE },
       { "socket-if-name",      required_argument,  0, SET_SOCKET_IF_NAME },
@@ -299,29 +307,32 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "verbose",   no_argument,   0, 'V' },
       { "trace",     no_argument,   0, 'T' },
 
+#if defined(__linux__)
       { "systemd",   no_argument,   0, SET_SYSTEMD_DAEMON },
+#endif
 
       { "es-argv",                   required_argument,  0,   'e' },
 
-      { "node-woker-queue",          required_argument, 0, SET_NODE_WORKER_QUEUE },
-      { "index-woker-queue",         required_argument, 0, SET_INDEX_WORKER_QUEUE },
-      { "index-woker-service-queue", required_argument, 0, SET_INDEX_SERVICE_WORKER_QUEUE },
+      { "node-woker-queue",          required_argument,  0, SET_NODE_WORKER_QUEUE },
+      { "index-woker-queue",         required_argument,  0, SET_INDEX_WORKER_QUEUE },
+      { "index-woker-service-queue", required_argument,  0, SET_INDEX_SERVICE_WORKER_QUEUE },
+      { "packet-filter-woker-queue", required_argument,  0, SET_PACKET_FILTER_WORKER_QUEUE },
+    
+      { "port-detect",               required_argument,  0, SET_PORT_DETECT },
 
-      { "port-detect-start",         required_argument,  0, SET_PORT_DETECT_START },
-      { "port-detect-end",           required_argument,  0, SET_PORT_DETECT_END },
-      { "port-detect-range",         required_argument,  0, SET_PORT_DETECT_RANGE },
-
-      { "full-detect-interval-usec", required_argument,  0, SET_FULL_DETECT_INTERVAL_USEC },
+      { "detect-interval",           required_argument,  0, SET_DETECT_INTERVAL },
 
       { "set-tun",                   required_argument,  0, SET_TUN },
       { "index-worker",              required_argument,  0, SET_INDEX_WORKER },
       { "index-service-worker",      required_argument,  0, SET_INDEX_SERVICE_WORKER },
       { "node-detect-worker",        required_argument,  0, SET_DETECT_WORKER },
 
+      { "pf-worker",                 required_argument,  0, SET_PF_WORKER_NUM },
+
       { "multi-socket",              required_argument,  0,  SET_MULTI_SOCKET },
       { "set-ur0",                   required_argument,  0,  SET_UR0 },
 
-      { "pf-route",                  required_argument,  0, SET_PF_ROUTE},
+      { "pf-route",                  required_argument,  0, SET_PF_ROUTE },
       { "unified-forwarding",        required_argument,  0, 'U' },
       { "direct-forwarding",         required_argument,  0, SET_DIRECT_FORWARDING },
       { "pid-file",                  required_argument,  0, SET_PID_FILE },
@@ -343,7 +354,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "node-log-level",            required_argument,  0,   SET_NODE_LOG_LEVEL },
       { "index-log-level",           required_argument,  0,   SET_INDEX_LOG_LEVEL },
       { "index-service-log-level",   required_argument,  0,   SET_INDEX_SERVICE_LOG_LEVEL },
-      { "node-detect-log-level",     required_argument,  0,   SET_DETECT_LOG_LEVEL },
+      { "node-detect-log-level",     required_argument,  0,   SET_DETECT_LOG_LEVEL },      
 
       { "help",     no_argument, 0, 'h' },
 
@@ -386,7 +397,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
             break;
 
         case 'n':
-            conf->local_uuid = (uint16_t)strtoul(optarg, NULL, 10);
+            conf->local_uuid = (gnb_uuid_t)strtoull(optarg, NULL, 10);
             conf->lite_mode = 1;
             break;
 
@@ -462,6 +473,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
             is_trace = 1;
             break;
 
+        case SET_SAFE_INDEX:
+            conf->safe_index = 1;
+
         case SET_SYSTEMD_DAEMON:
             conf->systemd_daemon = 1;
             break;
@@ -478,20 +492,27 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
             conf->index_service_woker_queue_length = (uint16_t)strtoul(optarg, NULL, 10);
             break;
 
-        case SET_PORT_DETECT_START:
-            conf->port_detect_start = (uint16_t)strtoul(optarg, NULL, 10);
+        case SET_PORT_DETECT:
+
+            num = sscanf(optarg, "%hu,%hu,%hu", &conf->port_detect_range, &conf->port_detect_start, &conf->port_detect_end);
+
+            if ( 3 != num ) {
+                conf->port_detect_range = DETECT_PORT_RANGE;
+                conf->port_detect_start = DETECT_PORT_START;
+                conf->port_detect_end   = DETECT_PORT_END;
+            }
+
             break;
 
-        case SET_PORT_DETECT_END:
-            conf->port_detect_end = (uint16_t)strtoul(optarg, NULL, 10);
-            break;
+        case SET_DETECT_INTERVAL:
 
-        case SET_FULL_DETECT_INTERVAL_USEC:
-            conf->full_detect_interval_usec = (uint32_t)strtoul(optarg, NULL, 10);
-            break;
+            num = sscanf(optarg, "%u,%u", &conf->address_detect_interval_usec, &conf->full_detect_interval_sec);
 
-        case SET_PORT_DETECT_RANGE:
-            conf->port_detect_range = (uint16_t)strtoul(optarg, NULL, 10);
+            if ( 2 != num ) {
+                conf->address_detect_interval_usec = GNB_ADDRESS_DETECT_INTERVAL_USEC;
+                conf->full_detect_interval_sec     = GNB_FULL_DETECT_INTERVAL_SEC;
+            }
+        
             break;
 
         case SET_MTU:
@@ -555,17 +576,57 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
         case SET_CRYPTO_TPYE:
 
             if ( !strncmp(optarg, "none", 16) ) {
-                conf->crypto_type = GNB_PF_TYPE_CRYPTO_NONE;
+                conf->pf_bits &= ~(GNB_PF_BITS_CRYPTO_XOR | GNB_PF_BITS_CRYPTO_ARC4);
             } else if ( !strncmp(optarg, "xor", 16) ) {
-                conf->crypto_type = GNB_PF_TYPE_CRYPTO_XOR;
+                conf->pf_bits |= GNB_PF_BITS_CRYPTO_XOR;
             } else if ( !strncmp(optarg, "arc4", 16) ) {
-                conf->crypto_type = GNB_PF_TYPE_CRYPTO_ARC4;
-            } else if ( !strncmp(optarg, "aes", 16) ) {
-                conf->crypto_type = GNB_PF_TYPE_CRYPTO_AES;
+                conf->pf_bits |= GNB_PF_BITS_CRYPTO_ARC4;
             } else {
-                conf->crypto_type = GNB_PF_TYPE_CRYPTO_XOR;
+                conf->pf_bits |= GNB_PF_BITS_CRYPTO_XOR;
             }
 
+            break;
+
+        case SET_ZIP:
+
+            if ( !strncmp(optarg, "auto", sizeof("auto")-1) ) {
+                conf->zip = GNB_ZIP_AUTO;
+            } else if ( !strncmp(optarg, "force", sizeof("force")-1) ) {
+                conf->zip = GNB_ZIP_FORCE;
+            } else {
+                conf->zip = GNB_ZIP_AUTO;
+            }
+
+            break;
+
+        case SET_ZIP_LEVEL:
+
+            conf->zip_level = (int8_t)strtoul(optarg, NULL, 10);
+
+            if ( conf->zip_level > 9 ) {
+                conf->zip_level = 9;
+            }
+
+            if ( conf->zip_level < -1 ) {
+                conf->zip_level = -1;
+            }
+
+            break;
+
+        case SET_MEMORY_SCALE:
+
+            if ( !strncmp(optarg, "tiny", 16) ) {
+                conf->memory = GNB_MEMORY_SCALE_TINY;
+            } else if ( !strncmp(optarg, "small", 16) ) {
+                conf->memory = GNB_MEMORY_SCALE_SMALL;
+            } else if ( !strncmp(optarg, "large", 16) ) {
+                conf->memory = GNB_MEMORY_SCALE_LARGE;
+            } else if ( !strncmp(optarg, "huge", 16) ) {
+                conf->memory = GNB_MEMORY_SCALE_HUGE;
+            } else {
+                conf->memory = GNB_MEMORY_SCALE_TINY;
+            }
+        
             break;
 
         case SET_MULTI_INDEX_TYPE:
@@ -671,6 +732,12 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
             } else {
                 conf->activate_detect_worker = 1;
             }
+
+            break;
+
+        case SET_PF_WORKER_NUM:
+
+            conf->pf_worker_num = (unsigned int)strtoul(optarg, NULL, 10);
 
             break;
 
@@ -801,9 +868,43 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
         conf->activate_index_worker         = 0;
         conf->activate_index_service_worker = 1;
         conf->activate_detect_worker        = 0;
+        conf->index_service_woker_queue_length = 0x7FF;
+    }
+
+    if ( conf->pf_worker_num > 128 ) {
+        conf->pf_worker_num = 128;
+    }
+
+    if ( conf->pf_worker_num > 0 ) {
+        conf->unified_forwarding = GNB_UNIFIED_FORWARDING_OFF;
     }
 
     gnb_addr_secure = conf->addr_secure;
+
+    switch (conf->memory) {
+
+    case GNB_MEMORY_SCALE_TINY:
+        conf->payload_block_size = 1024*4;
+        conf->max_heap_fragment  = 1024*8;
+        break;
+    case GNB_MEMORY_SCALE_SMALL:
+        conf->payload_block_size = 1024*16;
+        conf->max_heap_fragment  = 1024*16;
+        break;
+    case GNB_MEMORY_SCALE_LARGE:
+        conf->payload_block_size = 1024*32;
+        conf->max_heap_fragment  = 1024*32;
+        break;
+    case GNB_MEMORY_SCALE_HUGE:
+        conf->payload_block_size = 1024*64;
+        conf->max_heap_fragment  = 1024*64;
+        break;
+    default:
+        conf->payload_block_size = 1024*4;
+        conf->max_heap_fragment  = 1024*8;
+        break;
+
+    }
 
     if ( 1 == conf->multi_socket ) {
         conf->udp6_socket_num = 1;
@@ -825,6 +926,24 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     if ( conf->index_woker_queue_length > GNB_WORKER_MAX_QUEUE ) {
         conf->index_woker_queue_length = GNB_WORKER_MAX_QUEUE;
     }
+
+    if ( conf->index_service_woker_queue_length < GNB_WORKER_MIN_QUEUE ) {
+        conf->index_service_woker_queue_length = GNB_WORKER_MIN_QUEUE;
+    }
+
+    if ( conf->index_service_woker_queue_length > GNB_WORKER_MAX_QUEUE ) {
+        conf->index_service_woker_queue_length = GNB_WORKER_MAX_QUEUE;
+    }
+
+    if ( conf->pf_woker_in_queue_length < GNB_WORKER_MIN_QUEUE ) {
+        conf->pf_woker_in_queue_length = GNB_WORKER_MIN_QUEUE;
+    }
+
+    if ( conf->pf_woker_in_queue_length > GNB_WORKER_MAX_QUEUE ) {
+        conf->pf_woker_in_queue_length = GNB_WORKER_MAX_QUEUE;
+    }
+
+    conf->pf_woker_out_queue_length = conf->pf_woker_in_queue_length;
 
     if ( GNB_ADDR_TYPE_IPV6 == conf->udp_socket_type && conf->mtu < 1280 ) {
         conf->mtu = 1280;
@@ -893,6 +1012,24 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
         snprintf(conf->map_file,        PATH_MAX+NAME_MAX, "%s",       ctl_block_file);
     }
 
+    char  resolved_path[PATH_MAX+NAME_MAX];
+
+    if ( '\0' != conf->conf_dir[0] && NULL != gnb_realpath(conf->conf_dir,resolved_path) ) {
+        strncpy(conf->conf_dir, resolved_path, PATH_MAX);
+    }
+
+    if ( NULL != gnb_realpath(conf->map_file,resolved_path) ) {
+        strncpy(conf->map_file, resolved_path, PATH_MAX);
+    }
+
+    if ( NULL != gnb_realpath(conf->pid_file,resolved_path) ) {
+        strncpy(conf->pid_file, resolved_path, PATH_MAX);
+    }
+
+    if ( '\0' != conf->node_cache_file[0] && NULL != gnb_realpath(conf->node_cache_file,resolved_path) ) {
+        strncpy(conf->node_cache_file, resolved_path, PATH_MAX);
+    }
+
     #ifdef __UNIX_LIKE_OS__
     gnb_arg_append(gnb_es_arg_list, "-b");
     gnb_arg_append(gnb_es_arg_list, conf->map_file);
@@ -910,24 +1047,6 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     if ( 1 == conf->lite_mode ) {
         gnb_arg_append(gnb_es_arg_list, "--upnp");
-    }
-
-    char  resolved_path[PATH_MAX+NAME_MAX];
-
-    if ( '\0' != conf->conf_dir[0] && NULL != gnb_realpath(conf->conf_dir,resolved_path) ) {
-        strncpy(conf->conf_dir, resolved_path, PATH_MAX);
-    }
-
-    if ( NULL != gnb_realpath(conf->map_file,resolved_path) ) {
-        strncpy(conf->map_file, resolved_path, PATH_MAX);
-    }
-
-    if ( NULL != gnb_realpath(conf->pid_file,resolved_path) ) {
-        strncpy(conf->pid_file, resolved_path, PATH_MAX);
-    }
-
-    if ( '\0' != conf->node_cache_file[0] && NULL != gnb_realpath(conf->node_cache_file,resolved_path) ) {
-        strncpy(conf->node_cache_file, resolved_path, PATH_MAX);
     }
 
     return conf;
@@ -957,7 +1076,7 @@ static void show_useage(int argc,char *argv[]){
     printf("  -q, --quiet                      disabled console output\n");
     printf("  -t, --selftest                   self test\n");
     printf("  -p, --passcode                   a hexadecimal string of 32-bit unsigned integer,use to strengthen safety default:0x9d078107\n");
-    printf("  -U, --unified-forwarding         \"off\",\"force\",\"auto\",\"super\",\"hyper\" default:\"auto\"\n");
+    printf("  -U, --unified-forwarding         \"off\",\"force\",\"auto\",\"super\",\"hyper\" default:\"auto\"; cannot be used with --pf-worker\n");
 
 
     printf("  -l, --listen                     listen address default:\"0.0.0.0:9001\"\n");
@@ -966,21 +1085,26 @@ static void show_useage(int argc,char *argv[]){
     printf("  -V, --verbose                    verbose mode\n");
     printf("  -T, --trace                      trace mode\n");
 
+#if defined(__linux__)
     printf("      --systemd                    systemd daemon\n");
+#endif
+    
+    printf("      --node-worker-queue           node  worker queue length\n");
+    printf("      --index-worker-queue          index worker queue length\n");
+    printf("      --index-service-worker-queue  index service worker queue length\n");
+    printf("      --packet-filter-worker-queue  packet filter worker queue length\n");
 
-    printf("      --node-woker-queue           node  woker queue length\n");
-    printf("      --index-woker-queue          index woker queue length\n");
-    printf("      --index-service-woker-queue  index service woker queue length\n");
-
-    printf("      --port-detect-start          port detect start\n");
-    printf("      --port-detect-end            port detect end\n");
-    printf("      --port-detect-range          port detect range\n");
-    printf("      --full-detect-interval-usec  full detect interval usec\n");
+    printf("      --port-detect                node address detect port range,start,end\n");
+    printf("      --detect-interval            node address detect interval default %u,%u\n", GNB_ADDRESS_DETECT_INTERVAL_USEC,GNB_FULL_DETECT_INTERVAL_SEC);
 
     printf("      --mtu                        TUN Device MTU ipv4:532~1500,ipv6:1280~1500\n");
     printf("      --crypto                     ip frame crypto \"xor\",\"arc4\",\"none\" default:\"xor\"\n");
     printf("      --crypto-key-update-interval crypto key update interval, \"hour\",\"minute\",none default:\"none\"\n");
     printf("      --multi-index-type           \"simple-fault-tolerant\",\"simple-load-balance\",\"full\" default:\"simple-load-balance\"\n");
+
+    printf("      --zip                        \"auto\", \"force\" default:\"auto\"\n");
+    printf("      --zip-level                  \"0\": no compression \"1\": best speed,\"9\": best compression\n");
+
     printf("      --multi-forward-type         \"simple-fault-tolerant\",\"simple-load-balance\" default:\"simple-fault-tolerant\"\n");
 
     #ifdef _WIN32
@@ -994,12 +1118,20 @@ static void show_useage(int argc,char *argv[]){
     printf("      --address-secure             hide part of ip address in logs \"on\",\"off\" default:\"on\"\n");
     printf("      --if-dump                    dump the interface data frame \"on\",\"off\" default:\"off\"\n");
     printf("      --pf-route                   packet filter route\n");
+    printf("      --safe-index                 \"on\",\"off\" default:\"off\"\n");
     printf("      --multi-socket               \"on\",\"off\" default:\"off\"\n");
     printf("      --direct-forwarding          \"on\",\"off\" default:\"on\"\n");
     printf("      --set-tun                    \"on\",\"off\" default:\"on\"\n");
     printf("      --index-worker               \"on\",\"off\" default:\"on\"\n");
     printf("      --index-service-worker       \"on\",\"off\" default:\"on\"\n");
     printf("      --node-detect-worker         \"on\",\"off\" default:\"on\"\n");
+
+    #ifdef __UNIX_LIKE_OS__
+    printf("      --pf-worker                  [0-128] number of the packet filter worker default:0; cannot be used with --unified-forwarding, only for unix-like os\n");
+    #endif
+
+
+    printf("      --memory                     \"tiny\",\"small\",\"large\",\"huge\" default:\"tiny\"\n");
     printf("      --set-ur0                    \"on\",\"off\" default:\"on\"\n");
     printf("      --pid-file                   pid file\n");
     printf("      --node-cache-file            node address cache file\n");

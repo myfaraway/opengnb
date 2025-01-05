@@ -25,12 +25,12 @@
 
 typedef struct _gnb_ur1_frame_head_t{
 
-	uint32_t dst_uuid32;     //网络字节序
+	gnb_uuid_t dst_uuid64;     //网络字节序
 
 	uint8_t  relay_addr_type;
 	uint8_t  relay_addr[16];
 	uint16_t relay_in_port;    //网络字节序
-	uint16_t relay_out_port;   //网络字节序
+	uint16_t relay_out_port;   //网络字节序 //废弃
 
 	uint8_t  dst_addr_type;
 	uint8_t  dst_addr[16];
